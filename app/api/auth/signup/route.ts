@@ -14,19 +14,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user already exists in Firebase Auth
-    try {
-      const userRecord = await adminAuth.getUserByEmail(email);
-      if (userRecord) {
-        return NextResponse.json(
-          { error: 'Email already registered. Please login or use a different email.' },
-          { status: 400 }
-        );
-      }
-    } catch (error) {
-      // User doesn't exist in Auth, proceed with creation
-    }
-
     // Create user in Firebase Auth
     const userRecord = await adminAuth.createUser({
       email,
