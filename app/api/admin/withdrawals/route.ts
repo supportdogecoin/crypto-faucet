@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const withdrawalData = withdrawalDoc.data();
 
-    if (withdrawalData.status !== 'pending') {
+    if (!withdrawalData || withdrawalData.status !== 'pending') {
       return NextResponse.json({ error: 'Withdrawal already processed' }, { status: 400 });
     }
 
