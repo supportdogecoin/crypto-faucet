@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     const now = Date.now();
     const cooldownMs = FAUCET_CONFIG.CLAIM_COOLDOWN_MINUTES * 60 * 1000;
     
-    if (userData.lastClaim && now - userData.lastClaim < cooldownMs) {
+    if (userData?.lastClaim && now - userData.lastClaim < cooldownMs) {
       const remainingMs = cooldownMs - (now - userData.lastClaim);
       const remainingMinutes = Math.ceil(remainingMs / 60000);
       return NextResponse.json(
