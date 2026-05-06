@@ -3,7 +3,6 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "framework": "nextjs",
-  "functions": {},
   "routes": [
     {
       "src": "app/api/claim/route.ts",
