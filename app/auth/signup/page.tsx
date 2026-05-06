@@ -31,7 +31,9 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      // Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
       // Create user document in Firestore via API
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -46,7 +48,16 @@ export default function SignupPage() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      // Handle Firebase Auth errors
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Email already registered. Please login or use a different email.');
+      } else if (err.code === 'auth/weak-password') {
+        setError('Password is too weak. Please use at least 6 characters.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address.');
+      } else {
+        setError(err.message || 'Failed to create account');
+      }
     } finally {
       setLoading(false);
     }
