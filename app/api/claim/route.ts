@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { hashIP, usdToDOGE } from '@/lib/utils';
 import { FAUCET_CONFIG } from '@/lib/constants';
-import { checkRateLimit, validateIPConsistency, logSecurityEvent } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,31 +33,6 @@ export async function POST(request: NextRequest) {
                request.headers.get('x-real-ip') || 
                'unknown';
     const ipHash = hashIP(ip);
-
-    // Validate IP consistency
-    const ipValid = await validateIPConsistency(userId, ipHash);
-    if (!ipValid) {
-      return NextResponse.json(
-        { error: 'Security check failed. IP changed too recently.' },
-        { status: 403 }
-      );
-    }
-
-    // Check rate limits
-    const rateLimit = await checkRateLimit(userId, ipHash);
-    if (!rateLimit.allowed) {
-      await logSecurityEvent(
-        userId,
-        'RATE_LIMIT_EXCEEDED',
-        rateLimit.reason || 'Rate limit exceeded',
-        ipHash,
-        true
-      );
-      return NextResponse.json(
-        { error: rateLimit.reason },
-        { status: 429 }
-      );
-    }
 
     // Check cooldown
     const now = Date.now();
@@ -116,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to process claim' },
+      { error: error.message || 'Failed to process claim' },
       { status: 500 }
     );
   }

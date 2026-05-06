@@ -210,7 +210,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="border-b border-crypto-gold/20 bg-crypto-dark/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-crypto-gold">🐕 Crypto Faucet</h1>
+          <h1 className="text-2xl font-bold text-crypto-gold">DogeCoin Faucet</h1>
           <div className="flex items-center gap-4">
             <span className="text-gray-400">{user?.email}</span>
             <button

@@ -40,7 +40,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-crypto-darker flex items-center justify-center px-4">
       <div className="max-w-md w-full bg-crypto-dark p-8 rounded-xl border border-crypto-gold/20">
         <h1 className="text-3xl font-bold text-white mb-2 text-center">Welcome Back</h1>
-        <p className="text-gray-400 text-center mb-8">Login to your Crypto Faucet account</p>
+        <p className="text-gray-400 text-center mb-8">Login to your DogeCoin Faucet account</p>
 
         {error && (
           <div className="bg-crypto-danger/10 border border-crypto-danger text-crypto-danger px-4 py-3 rounded-lg mb-6">

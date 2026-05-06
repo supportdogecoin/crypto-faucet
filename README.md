@@ -1,4 +1,4 @@
-# Crypto Faucet - Production Ready Dogecoin Faucet
+# DogeCoin Faucet - Production Ready Dogecoin Faucet
 
 A production-ready crypto faucet web application built with Next.js, Firebase, and Tailwind CSS. Features strong anti-abuse systems, daily bonuses, and manual withdrawal review.
 

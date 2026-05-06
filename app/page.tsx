@@ -18,7 +18,7 @@ export default function Home() {
       {/* Header */}
       <header className="border-b border-crypto-gold/20 bg-crypto-dark/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-crypto-gold">🐕 Crypto Faucet</h1>
+          <h1 className="text-2xl font-bold text-crypto-gold">DogeCoin Faucet</h1>
           <div className="flex gap-4">
             <Link href="/auth/login" className="px-4 py-2 text-crypto-accent hover:text-crypto-gold transition">
               Login
@@ -136,7 +136,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-crypto-gold/20 bg-crypto-dark/50 mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-gray-400">
-          <p>&copy; 2024 Crypto Faucet. All rights reserved.</p>
+          <p>&copy; 2024 DogeCoin Faucet. All rights reserved.</p>
         </div>
       </footer>
     </div>
