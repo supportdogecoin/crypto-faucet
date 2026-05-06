@@ -47,8 +47,15 @@ export async function POST(request: NextRequest) {
 
     const userData = userDoc.data();
 
+    if (!userData) {
+      return NextResponse.json(
+        { error: 'User data not found' },
+        { status: 404 }
+      );
+    }
+
     // Check minimum withdrawal
-    if (userData.balanceUSD < FAUCET_CONFIG.MIN_WITHDRAWAL_USD) {
+    if ((userData?.balanceUSD || 0) < FAUCET_CONFIG.MIN_WITHDRAWAL_USD) {
       return NextResponse.json(
         { error: `Minimum withdrawal is $${FAUCET_CONFIG.MIN_WITHDRAWAL_USD}` },
         { status: 400 }
@@ -62,14 +69,14 @@ export async function POST(request: NextRequest) {
     const ipHash = hashIP(ip);
 
     // Calculate withdrawal amount
-    const withdrawalUSD = userData.balanceUSD;
-    const withdrawalDOGE = userData.balanceDOGE;
+    const withdrawalUSD = userData?.balanceUSD || 0;
+    const withdrawalDOGE = userData?.balanceDOGE || 0;
 
     // Create withdrawal request
     const withdrawalRef = await adminDb.collection('withdrawals').add({
       id: '', // Will be set by the ref
       userId,
-      userEmail: userData.email,
+      userEmail: userData?.email || '',
       amountUSD: withdrawalUSD,
       amountDOGE: withdrawalDOGE,
       dogeAddress,
