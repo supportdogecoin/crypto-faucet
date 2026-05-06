@@ -1,0 +1,24 @@
+export const FAUCET_CONFIG = {
+  REWARD_PER_CLAIM_USD: 0.0001,
+  CLAIM_COOLDOWN_MINUTES: 10,
+  MIN_WITHDRAWAL_USD: 0.5,
+  
+  // Daily bonus config
+  DAILY_BONUS_START_USD: 0.00001,
+  DAILY_BONUS_INCREMENT_USD: 0.00001,
+  DAILY_BONUS_MAX_USD: 0.00010,
+  DAILY_BONUS_COOLDOWN_HOURS: 24,
+  
+  // Admin
+  ADMIN_EMAIL: process.env.ADMIN_EMAIL || 'supportdogecoin@gmail.com',
+  
+  // DOGE rate
+  DOGE_USD_RATE: parseFloat(process.env.DOGE_USD_RATE || '0.15'),
+} as const;
+
+export const SECURITY_CONFIG = {
+  MAX_CLAIMS_PER_HOUR: 6,
+  MAX_CLAIMS_PER_DAY: 24,
+  SUSPICIOUS_STREAK_THRESHOLD: 20,
+  IP_CHANGE_COOLDOWN_MINUTES: 30,
+} as const;

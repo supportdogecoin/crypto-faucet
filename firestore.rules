@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth.token.email == 'supportdogecoin@gmail.com';
+    }
+    
+    // Helper function to get user ID from request
+    function getUserId() {
+      return request.auth.uid;
+    }
+    
+    // Users collection
+    match /users/{userId} {
+      // Only the user themselves or admin can read
+      allow read: if isAuthenticated() && (getUserId() == userId || isAdmin());
+      
+      // Only server-side (admin SDK) can write to prevent manual balance edits
+      // This is enforced by the API routes using Firebase Admin SDK
+      allow write: if false;
+    }
+    
+    // Claims collection
+    match /claims/{claimId} {
+      // Only admin can read all claims
+      allow read: if isAuthenticated() && isAdmin();
+      
+      // Users can only read their own claims
+      allow read: if isAuthenticated() && resource.data.userId == getUserId();
+      
+      // Only server-side can write (via API routes)
+      allow write: if false;
+    }
+    
+    // Withdrawals collection
+    match /withdrawals/{withdrawalId} {
+      // Only admin can read all withdrawals
+      allow read: if isAuthenticated() && isAdmin();
+      
+      // Users can only read their own withdrawals
+      allow read: if isAuthenticated() && resource.data.userId == getUserId();
+      
+      // Only server-side can write (via API routes)
+      allow write: if false;
+    }
+    
+    // Daily codes collection
+    match /dailyCodes/{codeId} {
+      // Only admin can read and write codes
+      allow read, write: if isAuthenticated() && isAdmin();
+    }
+    
+    // Code redemptions collection
+    match /codeRedemptions/{redemptionId} {
+      // Only admin can read all redemptions
+      allow read: if isAuthenticated() && isAdmin();
+      
+      // Users can only read their own redemptions
+      allow read: if isAuthenticated() && resource.data.userId == getUserId();
+      
+      // Only server-side can write (via API routes)
+      allow write: if false;
+    }
+    
+    // Security logs collection
+    match /securityLogs/{logId} {
+      // Only admin can read security logs
+      allow read: if isAuthenticated() && isAdmin();
+      
+      // Only server-side can write (via API routes)
+      allow write: if false;
+    }
+  }
+}
