@@ -92,8 +92,8 @@ export async function POST(request: NextRequest) {
 
     // Update user balance
     await adminDb.collection('users').doc(userId).update({
-      balanceUSD: userData.balanceUSD + codeData.rewardUSD,
-      balanceDOGE: userData.balanceDOGE + codeData.rewardDOGE,
+      balanceUSD: (userData?.balanceUSD || 0) + codeData.rewardUSD,
+      balanceDOGE: (userData?.balanceDOGE || 0) + codeData.rewardDOGE,
       updatedAt: Date.now(),
     });
 
@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
       success: true,
       rewardUSD: codeData.rewardUSD,
       rewardDOGE: codeData.rewardDOGE,
-      newBalanceUSD: userData.balanceUSD + codeData.rewardUSD,
-      newBalanceDOGE: userData.balanceDOGE + codeData.rewardDOGE,
+      newBalanceUSD: (userData?.balanceUSD || 0) + codeData.rewardUSD,
+      newBalanceDOGE: (userData?.balanceDOGE || 0) + codeData.rewardDOGE,
     });
   } catch (error: any) {
     console.error('Redeem code error:', error);
