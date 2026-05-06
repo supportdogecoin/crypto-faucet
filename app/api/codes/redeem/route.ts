@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { hashIP, usdToDOGE } from '@/lib/utils';
 import { FAUCET_CONFIG } from '@/lib/constants';
-import { checkRateLimit, logSecurityEvent } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,19 +33,6 @@ export async function POST(request: NextRequest) {
                request.headers.get('x-real-ip') || 
                'unknown';
     const ipHash = hashIP(ip);
-
-    // Check rate limits
-    const rateLimit = await checkRateLimit(userId, ipHash);
-    if (!rateLimit.allowed) {
-      await logSecurityEvent(
-        userId,
-        'CODE_REDEEM_RATE_LIMIT',
-        rateLimit.reason || 'Rate limit exceeded',
-        ipHash,
-        true
-      );
-      return NextResponse.json({ error: rateLimit.reason }, { status: 429 });
-    }
 
     // Find the code
     const codeQuery = await adminDb
@@ -139,6 +125,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token expired. Please login again.' }, { status: 401 });
     }
 
-    return NextResponse.json({ error: 'Failed to redeem code' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to redeem code' }, { status: 500 });
   }
 }

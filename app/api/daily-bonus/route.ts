@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, adminAuth } from '@/lib/firebaseAdmin';
 import { hashIP, usdToDOGE, calculateDailyBonus } from '@/lib/utils';
 import { FAUCET_CONFIG } from '@/lib/constants';
-import { checkRateLimit, logSecurityEvent } from '@/lib/security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,21 +34,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get IP for rate limiting and security
+    // Get IP for tracking
     const ip = request.headers.get('x-forwarded-for') || 
                request.headers.get('x-real-ip') || 
                'unknown';
     const ipHash = hashIP(ip);
-
-    // Check rate limiting
-    const rateLimit = await checkRateLimit(userId, 'daily_bonus');
-    if (!rateLimit.allowed) {
-      await logSecurityEvent(userId, 'rate_limit_exceeded', 'daily_bonus', ipHash);
-      return NextResponse.json(
-        { error: rateLimit.reason },
-        { status: 429 }
-      );
-    }
 
     // Check daily bonus cooldown (24 hours)
     const now = Date.now();
@@ -119,7 +108,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to claim daily bonus' },
+      { error: error.message || 'Failed to claim daily bonus' },
       { status: 500 }
     );
   }
