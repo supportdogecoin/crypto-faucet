@@ -14,6 +14,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user already exists and delete if so
+    try {
+      const existingUser = await adminAuth.getUserByEmail(email);
+      if (existingUser) {
+        await adminAuth.deleteUser(existingUser.uid);
+      }
+    } catch (error) {
+      // User doesn't exist, proceed with creation
+    }
+
     // Create user in Firebase Auth
     const userRecord = await adminAuth.createUser({
       email,
