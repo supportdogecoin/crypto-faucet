@@ -79,10 +79,10 @@ export async function POST(request: NextRequest) {
 
     // Update user balance
     await adminDb.collection('users').doc(userId).update({
-      balanceUSD: userData.balanceUSD + rewardUSD,
-      balanceDOGE: userData.balanceDOGE + rewardDOGE,
+      balanceUSD: (userData?.balanceUSD || 0) + rewardUSD,
+      balanceDOGE: (userData?.balanceDOGE || 0) + rewardDOGE,
       lastClaim: now,
-      totalClaims: userData.totalClaims + 1,
+      totalClaims: (userData?.totalClaims || 0) + 1,
       ipHash,
       updatedAt: now,
     });
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
       success: true,
       rewardUSD,
       rewardDOGE,
-      newBalanceUSD: userData.balanceUSD + rewardUSD,
-      newBalanceDOGE: userData.balanceDOGE + rewardDOGE,
+      newBalanceUSD: (userData?.balanceUSD || 0) + rewardUSD,
+      newBalanceDOGE: (userData?.balanceDOGE || 0) + rewardDOGE,
       nextClaimTime: now + cooldownMs,
     });
   } catch (error: any) {
