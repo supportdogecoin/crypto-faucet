@@ -302,10 +302,10 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={handleDailyBonus}
-                disabled={dailyBonusLoading}
+                disabled={bonusLoading}
                 className="w-full py-3 bg-crypto-gold text-crypto-darker rounded-lg font-bold hover:bg-crypto-accent transition disabled:opacity-50"
               >
-                {dailyBonusLoading ? 'Claiming...' : 'Claim Bonus'}
+                {bonusLoading ? 'Claiming...' : 'Claim Bonus'}
               </button>
             )}
           </div>
