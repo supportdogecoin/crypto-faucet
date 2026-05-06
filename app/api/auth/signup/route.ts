@@ -14,6 +14,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user already exists in Firebase Auth
+    try {
+      const userRecord = await adminAuth.getUserByEmail(email);
+      if (userRecord) {
+        return NextResponse.json(
+          { error: 'Email already registered. Please login or use a different email.' },
+          { status: 400 }
+        );
+      }
+    } catch (error) {
+      // User doesn't exist in Auth, proceed with creation
+    }
+
     // Create user in Firebase Auth
     const userRecord = await adminAuth.createUser({
       email,
@@ -45,20 +58,31 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Account created successfully',
+      uid: userRecord.uid,
     });
   } catch (error: any) {
     console.error('Signup error:', error);
     
-    if (error.code === 'auth/email-already-exists') {
+    if (error.code === 'auth/email-already-in-use') {
       return NextResponse.json(
-        { error: 'Email already exists' },
+        { error: 'Email already registered. Please login or use a different email.' },
         { status: 400 }
       );
+    } else if (error.code === 'auth/weak-password') {
+      return NextResponse.json(
+        { error: 'Password is too weak. Please use at least 6 characters.' },
+        { status: 400 }
+      );
+    } else if (error.code === 'auth/invalid-email') {
+      return NextResponse.json(
+        { error: 'Invalid email address.' },
+        { status: 400 }
+      );
+    } else {
+      return NextResponse.json(
+        { error: error.message || 'Failed to create account' },
+        { status: 500 }
+      );
     }
-
-    return NextResponse.json(
-      { error: 'Failed to create account' },
-      { status: 500 }
-    );
   }
 }
