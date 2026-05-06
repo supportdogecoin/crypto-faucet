@@ -3,8 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { formatUSD, formatDOGE } from '@/lib/utils';
 import { LogOut, Users, DollarSign, CheckCircle, XCircle, Plus, Code as CodeIcon } from 'lucide-react';
@@ -21,18 +19,36 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/auth/login');
-      } else if (currentUser.email !== ADMIN_EMAIL) {
-        router.push('/dashboard');
-      } else {
-        setUser(currentUser);
-        fetchData();
-      }
-    });
+    const initAuth = async () => {
+      try {
+        const { getClientAuth } = await import('@/lib/firebaseClient');
+        const { onAuthStateChanged } = await import('firebase/auth');
+        const auth = getClientAuth();
+        
+        if (!auth) {
+          setLoading(false);
+          return;
+        }
 
-    return () => unsubscribe();
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+          if (!currentUser) {
+            router.push('/auth/login');
+          } else if (currentUser.email !== ADMIN_EMAIL) {
+            router.push('/dashboard');
+          } else {
+            setUser(currentUser);
+            fetchData();
+          }
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, [router, activeTab]);
 
   const fetchData = async () => {
@@ -101,7 +117,12 @@ export default function AdminPage() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    const { getClientAuth } = await import('@/lib/firebaseClient');
+    const { signOut } = await import('firebase/auth');
+    const auth = getClientAuth();
+    if (auth) {
+      await signOut(auth);
+    }
     router.push('/');
   };
 

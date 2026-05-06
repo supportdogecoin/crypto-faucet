@@ -3,8 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -33,10 +31,16 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      // Create user in Firebase Auth
+      const { createUserWithEmailAndPassword } = await import('firebase/auth');
+      const { getClientAuth } = await import('@/lib/firebaseClient');
+      const auth = getClientAuth();
+      
+      if (!auth) {
+        throw new Error('Authentication not available');
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Create user document in Firestore via API
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,7 +54,6 @@ export default function SignupPage() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      // Handle Firebase Auth errors
       if (err.code === 'auth/email-already-in-use') {
         setError('Email already registered. Please login or use a different email.');
       } else if (err.code === 'auth/weak-password') {

@@ -3,8 +3,6 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { formatUSD, formatDOGE, getTimeRemaining } from '@/lib/utils';
 import { Clock, DollarSign, TrendingUp, LogOut, Gift, Code, Wallet } from 'lucide-react';
@@ -14,23 +12,45 @@ export default function DashboardPage() {
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [claimLoading, setClaimLoading] = useState(false);
-  const [dailyBonusLoading, setDailyBonusLoading] = useState(false);
+  const [bonusLoading, setBonusLoading] = useState(false);
+  const [codeLoading, setCodeLoading] = useState(false);
   const [code, setCode] = useState('');
   const [withdrawAddress, setWithdrawAddress] = useState('');
+  const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [message, setMessage] = useState('');
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser) {
-        router.push('/auth/login');
-      } else {
-        setUser(currentUser);
-        fetchUserData();
-      }
-    });
+    const initAuth = async () => {
+      try {
+        const { getClientAuth } = await import('@/lib/firebaseClient');
+        const { onAuthStateChanged } = await import('firebase/auth');
+        const auth = getClientAuth();
+        
+        if (!auth) {
+          setLoading(false);
+          return;
+        }
 
-    return () => unsubscribe();
+        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+          if (!currentUser) {
+            router.push('/auth/login');
+          } else {
+            setUser(currentUser);
+            await fetchUserData();
+          }
+          setLoading(false);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        setLoading(false);
+      }
+    };
+
+    initAuth();
   }, [router]);
 
   const fetchUserData = async () => {
@@ -78,7 +98,7 @@ export default function DashboardPage() {
   };
 
   const handleDailyBonus = async () => {
-    setDailyBonusLoading(true);
+    setBonusLoading(true);
     setMessage('');
 
     try {
@@ -99,7 +119,7 @@ export default function DashboardPage() {
     } catch (error) {
       setMessage('Bonus claim failed');
     } finally {
-      setDailyBonusLoading(false);
+      setBonusLoading(false);
     }
   };
 
@@ -160,7 +180,12 @@ export default function DashboardPage() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
+    const { getClientAuth } = await import('@/lib/firebaseClient');
+    const { signOut } = await import('firebase/auth');
+    const auth = getClientAuth();
+    if (auth) {
+      await signOut(auth);
+    }
     router.push('/');
   };
 
