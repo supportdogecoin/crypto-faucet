@@ -87,7 +87,7 @@ export default function DashboardPage() {
       if (response.ok) {
         setMessage(`Claimed ${formatUSD(data.rewardUSD)}!`);
         // Update balance directly from API response
-        setUserData(prev => ({
+        setUserData((prev: any) => ({
           ...prev,
           user: {
             ...prev?.user,
@@ -125,7 +125,7 @@ export default function DashboardPage() {
       if (response.ok) {
         setMessage(`Daily bonus claimed! Streak: ${data.streakDays} days`);
         // Update balance directly from API response
-        setUserData(prev => ({
+        setUserData((prev: any) => ({
           ...prev,
           user: {
             ...prev?.user,
@@ -168,7 +168,7 @@ export default function DashboardPage() {
         setMessage(`Code redeemed! +${formatUSD(data.rewardUSD)}`);
         setCode('');
         // Update balance directly from API response
-        setUserData(prev => ({
+        setUserData((prev: any) => ({
           ...prev,
           user: {
             ...prev?.user,
