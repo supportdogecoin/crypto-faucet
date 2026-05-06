@@ -28,23 +28,23 @@ export async function POST(request: NextRequest) {
     }
 
     const userData = userDoc.data();
+    if (!userData) {
+      return NextResponse.json(
+        { error: 'User data not found' },
+        { status: 404 }
+      );
+    }
 
-    // Get client IP
+    // Get IP for rate limiting and security
     const ip = request.headers.get('x-forwarded-for') || 
                request.headers.get('x-real-ip') || 
                'unknown';
     const ipHash = hashIP(ip);
 
-    // Check rate limits
-    const rateLimit = await checkRateLimit(userId, ipHash);
+    // Check rate limiting
+    const rateLimit = checkRateLimit(userId, 'daily_bonus');
     if (!rateLimit.allowed) {
-      await logSecurityEvent(
-        userId,
-        'DAILY_BONUS_RATE_LIMIT',
-        rateLimit.reason || 'Rate limit exceeded',
-        ipHash,
-        true
-      );
+      await logSecurityEvent(userId, 'rate_limit_exceeded', 'daily_bonus', ipHash);
       return NextResponse.json(
         { error: rateLimit.reason },
         { status: 429 }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const now = Date.now();
     const cooldownMs = FAUCET_CONFIG.DAILY_BONUS_COOLDOWN_HOURS * 60 * 60 * 1000;
     
-    if (userData.lastDailyClaim && now - userData.lastDailyClaim < cooldownMs) {
+    if (userData?.lastDailyClaim && now - userData.lastDailyClaim < cooldownMs) {
       const remainingMs = cooldownMs - (now - userData.lastDailyClaim);
       const remainingHours = Math.ceil(remainingMs / (1000 * 60 * 60));
       return NextResponse.json(
@@ -66,34 +66,25 @@ export async function POST(request: NextRequest) {
 
     // Check if streak is broken (more than 48 hours since last claim)
     const streakBreakMs = 48 * 60 * 60 * 1000;
-    let newStreakDays = userData.streakDays;
-
-    if (userData.lastDailyClaim && now - userData.lastDailyClaim > streakBreakMs) {
-      // Streak reset
-      newStreakDays = 1;
-      await logSecurityEvent(
-        userId,
-        'STREAK_RESET',
-        `Streak reset from ${userData.streakDays} to 1`,
-        ipHash,
-        false
-      );
-    } else {
-      // Increment streak
-      newStreakDays = userData.streakDays + 1;
+    const streakDays = userData?.streakDays || 0;
+    const lastDailyClaim = userData?.lastDailyClaim || 0;
+    
+    let newStreakDays = streakDays + 1;
+    if (lastDailyClaim && now - lastDailyClaim > streakBreakMs) {
+      newStreakDays = 1; // Reset streak
     }
 
     // Calculate bonus based on streak
     const bonusUSD = calculateDailyBonus(newStreakDays);
     const bonusDOGE = usdToDOGE(bonusUSD, FAUCET_CONFIG.DOGE_USD_RATE);
 
-    // Update user
+    // Update user balance and streak
     await adminDb.collection('users').doc(userId).update({
-      balanceUSD: userData.balanceUSD + bonusUSD,
-      balanceDOGE: userData.balanceDOGE + bonusDOGE,
-      streakDays: newStreakDays,
+      balanceUSD: (userData?.balanceUSD || 0) + bonusUSD,
+      balanceDOGE: (userData?.balanceDOGE || 0) + bonusDOGE,
       lastDailyClaim: now,
-      totalDailyEarned: userData.totalDailyEarned + bonusUSD,
+      streakDays: newStreakDays,
+      totalDailyEarned: (userData?.totalDailyEarned || 0) + bonusUSD,
       ipHash,
       updatedAt: now,
     });
@@ -110,12 +101,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      bonusUSD,
-      bonusDOGE,
+      rewardUSD: bonusUSD,
+      rewardDOGE: bonusDOGE,
       streakDays: newStreakDays,
-      newBalanceUSD: userData.balanceUSD + bonusUSD,
-      newBalanceDOGE: userData.balanceDOGE + bonusDOGE,
-      nextBonusTime: now + cooldownMs,
+      newBalanceUSD: (userData?.balanceUSD || 0) + bonusUSD,
+      newBalanceDOGE: (userData?.balanceDOGE || 0) + bonusDOGE,
+      nextClaimTime: now + cooldownMs,
     });
   } catch (error: any) {
     console.error('Daily bonus error:', error);
@@ -128,7 +119,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to process daily bonus' },
+      { error: 'Failed to claim daily bonus' },
       { status: 500 }
     );
   }
