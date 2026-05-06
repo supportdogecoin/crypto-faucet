@@ -31,16 +31,6 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const { createUserWithEmailAndPassword } = await import('firebase/auth');
-      const { getClientAuth } = await import('@/lib/firebaseClient');
-      const auth = getClientAuth();
-      
-      if (!auth) {
-        throw new Error('Authentication not available');
-      }
-
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -50,6 +40,17 @@ export default function SignupPage() {
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Failed to create account');
+      }
+
+      const data = await response.json();
+      
+      // Sign in the user after successful account creation
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const { getClientAuth } = await import('@/lib/firebaseClient');
+      const auth = getClientAuth();
+      
+      if (auth) {
+        await signInWithEmailAndPassword(auth, email, password);
       }
 
       router.push('/dashboard');
