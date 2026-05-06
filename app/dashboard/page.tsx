@@ -86,6 +86,18 @@ export default function DashboardPage() {
 
       if (response.ok) {
         setMessage(`Claimed ${formatUSD(data.rewardUSD)}!`);
+        // Update balance directly from API response
+        setUserData(prev => ({
+          ...prev,
+          user: {
+            ...prev?.user,
+            balanceUSD: data.newBalanceUSD,
+            balanceDOGE: data.newBalanceDOGE,
+            lastClaim: data.nextClaimTime - 10 * 60 * 1000,
+            totalClaims: (prev?.user?.totalClaims || 0) + 1,
+          }
+        }));
+        // Also fetch full data to ensure consistency
         fetchUserData();
       } else {
         setMessage(data.error || 'Claim failed');
@@ -112,6 +124,19 @@ export default function DashboardPage() {
 
       if (response.ok) {
         setMessage(`Daily bonus claimed! Streak: ${data.streakDays} days`);
+        // Update balance directly from API response
+        setUserData(prev => ({
+          ...prev,
+          user: {
+            ...prev?.user,
+            balanceUSD: data.newBalanceUSD,
+            balanceDOGE: data.newBalanceDOGE,
+            lastDailyClaim: data.nextClaimTime - 24 * 60 * 60 * 1000,
+            streakDays: data.streakDays,
+            totalDailyEarned: (prev?.user?.totalDailyEarned || 0) + data.rewardUSD,
+          }
+        }));
+        // Also fetch full data to ensure consistency
         fetchUserData();
       } else {
         setMessage(data.error || 'Bonus claim failed');
@@ -142,6 +167,16 @@ export default function DashboardPage() {
       if (response.ok) {
         setMessage(`Code redeemed! +${formatUSD(data.rewardUSD)}`);
         setCode('');
+        // Update balance directly from API response
+        setUserData(prev => ({
+          ...prev,
+          user: {
+            ...prev?.user,
+            balanceUSD: data.newBalanceUSD,
+            balanceDOGE: data.newBalanceDOGE,
+          }
+        }));
+        // Also fetch full data to ensure consistency
         fetchUserData();
       } else {
         setMessage(data.error || 'Code redemption failed');
