@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const ipHash = hashIP(ip);
 
     // Check rate limiting
-    const rateLimit = checkRateLimit(userId, 'daily_bonus');
+    const rateLimit = await checkRateLimit(userId, 'daily_bonus');
     if (!rateLimit.allowed) {
       await logSecurityEvent(userId, 'rate_limit_exceeded', 'daily_bonus', ipHash);
       return NextResponse.json(
